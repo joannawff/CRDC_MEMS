@@ -1,0 +1,31 @@
+﻿<Properties StartupConfiguration="{F8D8D81D-8B38-49E3-9FEB-3E6E43EB8860}|Default">
+  <MonoDevelop.Ide.Workbench ActiveDocument="DataSolution.Designer.cs">
+    <Files>
+      <File FileName="main.Designer.cs" Line="137" Column="31" />
+      <File FileName="DataSolution.Designer.cs" Line="16" Column="51" />
+    </Files>
+    <Pads>
+      <Pad Id="ProjectPad">
+        <State name="__root__">
+          <Node name="CRDC_MEMS" expanded="True">
+            <Node name="CRDC_MEMS" expanded="True">
+              <Node name="DataSolution.cs" expanded="True">
+                <Node name="DataSolution.Designer.cs" selected="True" />
+              </Node>
+            </Node>
+          </Node>
+        </State>
+      </Pad>
+      <Pad Id="MonoDevelop.Debugger.WatchPad">
+        <State />
+      </Pad>
+    </Pads>
+  </MonoDevelop.Ide.Workbench>
+  <MonoDevelop.Ide.ItemProperties.CRDC__MEMS PreferredExecutionTarget="MonoDevelop.Default" />
+  <MonoDevelop.Ide.DebuggingService.PinnedWatches />
+  <MonoDevelop.Ide.Workspace ActiveConfiguration="Debug" />
+  <MonoDevelop.Ide.DebuggingService.Breakpoints>
+    <BreakpointStore />
+  </MonoDevelop.Ide.DebuggingService.Breakpoints>
+  <MultiItemStartupConfigurations />
+</Properties>
