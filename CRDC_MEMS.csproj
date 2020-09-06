@@ -73,6 +73,7 @@
     <Compile Include="main.Designer.cs">
       <DependentUpon>main.cs</DependentUpon>
     </Compile>
+    <Compile Include="ProcessorV3.cs" />
     <Compile Include="ProcessorV2.cs" />
     <Compile Include="Processor.cs" />
     <Compile Include="Program.cs" />

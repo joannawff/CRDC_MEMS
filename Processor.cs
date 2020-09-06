@@ -28,6 +28,42 @@ namespace CRDC_MEMS
     public class Processor
     {
         // 加载文件
+        public void LoadFileV3(string filepath, List<GlobalItem> gloves, List<SingleItem> itemlist)
+        {
+            if (itemlist == null)
+            {
+                itemlist = new List<SingleItem>();
+            }
+
+            GlobalItem glove = new GlobalItem();
+            using (StreamReader reader = new StreamReader(filepath))
+            {
+                string line = "";
+                while (!string.IsNullOrWhiteSpace(line = reader.ReadLine()))
+                {
+                    if (line.StartsWith("node_totalnum"))
+                    {
+                        glove = new GlobalItem();
+                        glove.Initial(line);
+                        gloves.Add(glove);
+                        continue;
+                    }
+
+                    SingleItem item = new SingleItem();
+                    if (item.Initial(glove.NodeTotalNum, line))
+                    {
+                        itemlist.Add(item);
+                    }
+
+                    if (string.IsNullOrWhiteSpace(glove.Key))
+                    {
+                        glove.Key = $"{item.Date},{item.Hour},0,0";
+                    }
+                }
+            }
+        }
+
+        // 加载文件
         public void LoadFile(string path, List<GlobalItem> gloves, List<SingleItem> itemlist)
         {
             if (itemlist == null)
@@ -396,9 +432,9 @@ namespace CRDC_MEMS
         }
 
         // 通用的输出函数
-        public void Output(string filename, List<SingleItem> itemlist)
+        public void Output(string filename, List<SingleItem> itemlist, bool append = false)
         {
-            using (StreamWriter sw = new StreamWriter(filename))
+            using (StreamWriter sw = new StreamWriter(filename, append))
             {
                 foreach (var item in itemlist)
                 {
@@ -408,11 +444,14 @@ namespace CRDC_MEMS
         }
 
         // 电源申压文件
-        public void OutputPowerV(string filename, List<GlobalItem> gloves)
+        public void OutputPowerV(string filename, List<GlobalItem> gloves, bool append = false)
         {
-            using (StreamWriter sw = new StreamWriter(filename))
+            using (StreamWriter sw = new StreamWriter(filename, append))
             {
-                sw.WriteLine($"node_totalnum:{gloves[0].NodeTotalNum},Device_SerNumber:{gloves[0].Device_SerNumber}");
+                if (!append)
+                {
+                    sw.WriteLine($"node_totalnum:{gloves[0].NodeTotalNum},Device_SerNumber:{gloves[0].Device_SerNumber}");
+                }
                 foreach (var item in gloves)
                 {
                     sw.WriteLine($"{item.Key},PowerVoltage:{item.PowerVoltage}");
@@ -437,9 +476,9 @@ namespace CRDC_MEMS
 
 
         // 节段电压文件
-        public void OutputNodeV(string filename, List<SingleItem> itemlist)
+        public void OutputNodeV(string filename, List<SingleItem> itemlist, bool append = false)
         {
-            using (StreamWriter sw = new StreamWriter(filename))
+            using (StreamWriter sw = new StreamWriter(filename, append))
             {
                 foreach (var item in itemlist)
                 {
@@ -449,9 +488,9 @@ namespace CRDC_MEMS
         }
 
         // 节段温度文件
-        public void OutputNodeT(string filename, List<SingleItem> itemlist)
+        public void OutputNodeT(string filename, List<SingleItem> itemlist, bool append = false)
         {
-            using (StreamWriter sw = new StreamWriter(filename))
+            using (StreamWriter sw = new StreamWriter(filename, append))
             {
                 foreach (var item in itemlist)
                 {
@@ -461,9 +500,9 @@ namespace CRDC_MEMS
         }
 
         // Result1
-        public void OutputResult1(string filename, List<SingleItem> itemlist, bool is_for_H = true)
+        public void OutputResult1(string filename, List<SingleItem> itemlist, bool is_for_H = true, bool append = false)
         {
-            using (StreamWriter sw = new StreamWriter(filename))
+            using (StreamWriter sw = new StreamWriter(filename, append))
             {
                 foreach (var item in itemlist)
                 {
@@ -480,9 +519,9 @@ namespace CRDC_MEMS
         }
 
         // Result2
-        public void OutputResult2(string filename, List<SingleItem> itemlist, bool is_for_H = true)
+        public void OutputResult2(string filename, List<SingleItem> itemlist, bool is_for_H = true, bool append = false)
         {
-            using (StreamWriter sw = new StreamWriter(filename))
+            using (StreamWriter sw = new StreamWriter(filename, append))
             {
                 foreach (var item in itemlist)
                 {
@@ -499,9 +538,9 @@ namespace CRDC_MEMS
         }
 
         // Result3
-        public void OutputResult3(string filename, List<SingleItem> itemlist, bool is_for_H = true)
+        public void OutputResult3(string filename, List<SingleItem> itemlist, bool is_for_H = true, bool append = false)
         {
-            using (StreamWriter sw = new StreamWriter(filename))
+            using (StreamWriter sw = new StreamWriter(filename, append))
             {
                 DateTime last_dt = itemlist[0].Time;
                 var item = itemlist[0];

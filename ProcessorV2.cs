@@ -157,11 +157,10 @@ namespace CRDC_MEMS
                     itemlist_avg.Add(item_avg);
                     itemlist_filtered.Add(Cumulate(itemlist_avg, itemlist_avg.Count - Config.CUMULATE_COUNT, itemlist_avg.Count - 1));
 
+                    //total_count += 1;
                     last_key = key;
                     last_item = (SingleItem)item.ShallowCopy();
                     last_count = 1;
-                    //total_count += 1;
-
                     continue;
                 }
 
@@ -258,17 +257,23 @@ namespace CRDC_MEMS
         // 电源申压文件
         public void OutputPowerV(string filename, GlobalItem glove, bool first = false, bool append = true)
         {
-            using (StreamWriter sw = new StreamWriter(filename, append))
+            if (first)
             {
-                if (first)
-                {
-                    sw.WriteLine($"node_totalnum:{glove.NodeTotalNum},Device_SerNumber:{glove.Device_SerNumber}");
-                }
-                else
-                {
-                    sw.WriteLine($"{glove.Key},PowerVoltage:{glove.PowerVoltage}");
-                }
+                File.AppendAllText(filename, $"node_totalnum:{glove.NodeTotalNum},Device_SerNumber:{glove.Device_SerNumber}\n");
             }
+            File.AppendAllText(filename, $"{glove.Key},PowerVoltage:{glove.PowerVoltage}\n");
+
+            //using (StreamWriter sw = new StreamWriter(filename, append))
+            //{
+            //    if (first)
+            //    {
+            //        sw.WriteLine($"node_totalnum:{glove.NodeTotalNum},Device_SerNumber:{glove.Device_SerNumber}");
+            //    }
+            //    else
+            //    {
+            //        sw.WriteLine($"{glove.Key},PowerVoltage:{glove.PowerVoltage}");
+            //    }
+            //}
         }
 
 
@@ -323,13 +328,10 @@ namespace CRDC_MEMS
         }
 
         // Result3
-        public void OutputResult3(string filename, List<SingleItem> itemlist, bool is_for_H = true, bool append = true)
+        public void OutputResult3(string filename, SingleItem item, bool first = false, bool is_for_H = true, bool append = true)
         {
             using (StreamWriter sw = new StreamWriter(filename))
             {
-                DateTime last_dt = itemlist[0].Time;
-                var item = itemlist[0];
-
                 if (is_for_H)
                 {
                     sw.WriteLine($"{item.Date},{item.Hour},{item.Minitue},{item.Second},{string.Join(",", item.nodes.Select(t => $"{t.Id},{t.Z + 100}"))}");
@@ -338,27 +340,26 @@ namespace CRDC_MEMS
                 {
                     sw.WriteLine($"{item.Date},{item.Hour},{item.Minitue},{item.Second},{string.Join(",", item.nodes.Select(t => $"{t.Id},{t.X + 100}"))}");
                 }
-
-                for (int i = 299; i < itemlist.Count; i++)
-                {
-                    item = itemlist[i];
-                    if ((item.Time - last_dt).TotalSeconds < Config.TIME_INTERVAL)
-                    {
-                        continue;
-                    }
-
-                    if (is_for_H)
-                    {
-                        sw.WriteLine($"{item.Date},{item.Hour},{item.Minitue},{item.Second},{string.Join(",", item.nodes.Select(t => $"{t.Id},{t.Z + 100}"))}");
-                    }
-                    else
-                    {
-                        sw.WriteLine($"{item.Date},{item.Hour},{item.Minitue},{item.Second},{string.Join(",", item.nodes.Select(t => $"{t.Id},{t.X + 100}"))}");
-                    }
-
-                    last_dt = item.Time;
-                }
             }
+        }
+
+        public void DeleteDirectory(string target_dir)
+        {
+            string[] files = Directory.GetFiles(target_dir);
+            string[] dirs = Directory.GetDirectories(target_dir);
+
+            foreach (string file in files)
+            {
+                File.SetAttributes(file, FileAttributes.Normal);
+                File.Delete(file);
+            }
+
+            foreach (string dir in dirs)
+            {
+                DeleteDirectory(dir);
+            }
+
+            Directory.Delete(target_dir, false);
         }
     }
 }

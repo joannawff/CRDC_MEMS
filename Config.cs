@@ -32,7 +32,7 @@ namespace CRDC_MEMS
         public static int TIME_INTERVAL = 300;      //间隔为300s，即5分钟
 
         // output filenames
-        public static string F_OUT_SUFFIX = "_out";
+        public static string F_OUT_SUFFIX = "_out_new";
         public static string F_DEBUG_CUM = "Debug_cumulate.txt";
         public static string F_DEBUG_AVG = "Debug_average.txt";
         public static string F_PRE = "Pre_file.txt";

@@ -43,7 +43,7 @@ namespace CRDC_MEMS
                 MessageBox.Show("文件导入成功！");
 
                 // 处理文件
-                Process(path, is_for_H:true);
+                ProcessV3(path, is_for_H:true);
             }
 
         }
@@ -270,30 +270,33 @@ namespace CRDC_MEMS
 
         private void ProcessV2(string path, bool is_for_H = true)
         {
+            ProcessorV2 helper = new ProcessorV2();
             string path_out = path + Config.F_OUT_SUFFIX;
-            if (!Directory.Exists(path_out))
+            if (Directory.Exists(path_out))
             {
-                // create output
-                Directory.CreateDirectory(path_out);
+                //Directory.CreateDirectory(path_out);
+                //Directory.Delete(path_out);
+                helper.DeleteDirectory(path_out);
             }
-            else
-            {
-                // clear output
-                Directory.Delete(path_out);
-            }
+            Directory.CreateDirectory(path_out);
 
             // GlobalItem首行记录，SingleItem单行详细内容记录
             List<GlobalItem> gloves = new List<GlobalItem>();
-            ProcessorV2 helper = new ProcessorV2();
-
-            Queue<SingleItem> queue = new Queue<SingleItem>();
-
+            Queue<SingleItem> queue_src = new Queue<SingleItem>(); // 原始
+            Queue<SingleItem> queue = new Queue<SingleItem>(); // 压缩后
             DirectoryInfo thefolder = new DirectoryInfo(path);
+
+            bool first_start = true; //原始文件的第一行
+            bool first_start_cum = true; //累积文件的第一行
+            string last_key = string.Empty;
+            SingleItem last_item = new SingleItem();
+            int last_count = 0; // 对于当前时段，总共有多少行 -> 同一秒合并时用
+            DateTime last_dt = DateTime.Today;
             foreach (FileInfo file in thefolder.GetFiles())
             {
                 var filepath = file.DirectoryName + @"\" + file.Name;
                 GlobalItem glove = new GlobalItem();
-                bool first_start = true;
+                
                 using (StreamReader reader = new StreamReader(filepath))
                 {
                     string line = "";
@@ -303,12 +306,19 @@ namespace CRDC_MEMS
                         {
                             glove = new GlobalItem();
                             glove.Initial(line);
+                            var raw_key = file.Name.Replace(".txt", "");
+                            glove.Key = $"{raw_key.Substring(0,8)},{raw_key.Substring(8,2)},0,0";
+                            helper.OutputPowerV(filename: Path.Combine(path_out, Config.F_PowerV),
+                                                glove: glove,
+                                                first: first_start,
+                                                append: true);
                             gloves.Add(glove);
                             continue;
                         }
                         if (queue.Count > Config.CUMULATE_COUNT) // q.Count > 100
                         {
                             queue.Dequeue();
+                            queue_src.Dequeue();
                         }
 
                         SingleItem item = new SingleItem();
@@ -317,71 +327,183 @@ namespace CRDC_MEMS
                             continue;
                         }
 
-                        if (!helper.Preprocess(0, queue.ToList(), first_start, is_for_H))
+                        //将原始文件压入队列进行预处理：上下左右检验，每次只要检验队列的最后一行即可
+                        queue_src.Enqueue(item);
+                        if (!helper.Preprocess(queue_src.Count - 1, queue_src.ToList(), first_start, is_for_H))
                         {
                             continue;
                         }
-
-                        if (!item.flag)
-                        {
-                            queue.Enqueue(item);
-                        }
-
 
                         if (string.IsNullOrWhiteSpace(glove.Key))
                         {
                             glove.Key = $"{item.Date},{item.Hour},0,0";
                         }
 
-                        helper.OutputPowerV(filename: Path.Combine(path_out, Config.F_PowerV),
-                                            glove: glove,
-                                            first: first_start,
-                                            append: true);
-                        first_start = false;
+                        if (first_start)
+                        {
+                            last_dt = item.Time;
+                            first_start = false;
+                        }
+
+                        // 合并
+                        var key = $"{item.Hour}_{item.Minitue}_{item.Second}"; // 时_分_秒
+
+                        // 第一行
+                        if (string.IsNullOrWhiteSpace(last_key))
+                        {
+                            last_key = key;
+                            last_item = (SingleItem)item.ShallowCopy();
+                            last_count += 1;
+                            continue;
+                        }
+
+                        // 当前key和上一行不一样，表示上一行的合并结束，开始初始化新行的合并,放入队列中
+                        if (last_key != key)
+                        {
+                            last_item.Voltage = Math.Round(1.0 * last_item.Voltage / last_count, 2);
+                            var item_avg = (SingleItem)last_item.ShallowCopy();
+                            for (int k = 0; k < last_item.nodes.Count; k++)
+                            {
+                                var node = last_item.nodes[k];
+                                node.Temp = Math.Round(1.0 * node.Temp / last_count, 0);
+                                node.X = Math.Round(1.0 * node.X / last_count, 0);
+                                node.Y = Math.Round(1.0 * node.Y / last_count, 0);
+                                node.Z = Math.Round(1.0 * node.Z / last_count, 0);
+                                node.MagX = Math.Round(1.0 * node.MagX / last_count, 0);
+                                node.MagY = Math.Round(1.0 * node.MagY / last_count, 0);
+                                node.MagZ = Math.Round(1.0 * node.MagZ / last_count, 0);
+                                node.PitchAngle = Math.Round(1.0 * node.PitchAngle / last_count, 0);
+                                node.RollAngle = Math.Round(1.0 * node.RollAngle / last_count, 0);
+                                node.CourseAngle = Math.Round(1.0 * node.CourseAngle / last_count, 0);
+                                item_avg.nodes[k] = (Node)node.ShallowCopy();
+                            }
+
+                            queue.Enqueue(item_avg);
+
+                            // 输出合并结果
+                            //helper.Output(Path.Combine(path_out, Config.F_DEBUG_AVG), item_avg, append: true);
+                            // 输出累计结果
+                            SingleItem cumItem = helper.Cumulate(itemlist: queue.ToList(),
+                                                                start: 0,
+                                                                end: queue.Count - 1);
+                            //helper.Output(Path.Combine(path_out, Config.F_DEBUG_CUM), cumItem, append: true);
+                            
+                            // 节段电压文件
+                            //helper.OutputNodeV(Path.Combine(path_out, Config.F_NodeV), cumItem, append: true);
+                            // 节段温度文件
+                            //helper.OutputNodeT(Path.Combine(path_out, Config.F_NodeT), cumItem, append: true);
+                            // Result1
+                            //helper.OutputResult1(Path.Combine(path_out, Config.F_RES1), cumItem, is_for_H, append: true);
+                            // Result2
+                            //helper.OutputResult2(Path.Combine(path_out, Config.F_RES2), cumItem, is_for_H, append: true);
+
+                            // Result3
+                            //第一条记录，或者不足时间间隔（5min）
+                            if (first_start_cum || (cumItem.Time - last_dt).TotalSeconds >= Config.TIME_INTERVAL)
+                            {
+                                //helper.OutputResult3(filename: Path.Combine(path_out, Config.F_RES3), 
+                                //                     item: cumItem, 
+                                //                     first: first_start_cum,
+                                //                     is_for_H: is_for_H, 
+                                //                     append: true);
+                                last_dt = item.Time;
+                            }
+                            first_start_cum = false;
+
+                            ////////////////////////////////////first_start = false;
+
+                            last_key = key;
+                            last_item = (SingleItem)item.ShallowCopy();
+                            last_count = 1;
+                            continue;
+                        }
+
+                        // 当前的key和上一个key一样，表示当前合并尚未结束，则继续累计以求均值
+                        if (last_item.nodes.Count != item.nodes.Count)
+                        {
+                            continue;
+                        }
+
+                        last_item.Voltage += item.Voltage;
+                        for (int k = 0; k < last_item.nodes.Count; k++)
+                        {
+                            last_item.nodes[k].Temp += item.nodes[k].Temp;
+                            last_item.nodes[k].X += item.nodes[k].X;
+                            last_item.nodes[k].Y += item.nodes[k].Y;
+                            last_item.nodes[k].Z += item.nodes[k].Z;
+                            last_item.nodes[k].MagX += item.nodes[k].MagX;
+                            last_item.nodes[k].MagY += item.nodes[k].MagY;
+                            last_item.nodes[k].MagZ += item.nodes[k].MagZ;
+                            last_item.nodes[k].PitchAngle += item.nodes[k].PitchAngle;
+                            last_item.nodes[k].RollAngle += item.nodes[k].RollAngle;
+                            last_item.nodes[k].CourseAngle += item.nodes[k].CourseAngle;
+                        }
+
+                        last_count += 1;
                     }
                 }
+            }
+            MessageBox.Show("结束！");
+        }
 
-                //List<SingleItem> itemlist = new List<SingleItem>();
-                
+        private void ProcessV3(string path, bool is_for_H = true)
+        {
+            string path_out = path + Config.F_OUT_SUFFIX;
+            if (!Directory.Exists(path_out))
+            {
+                Directory.CreateDirectory(path_out);
+            }
 
-                // 加载文件
-                //helper.LoadFile(path, gloves, itemlist);
+            //新建类
+            Processor helper = new Processor();
 
-                //List<SingleItem> itemlist_preprocessed = new List<SingleItem>(); // V 合格的行
-                //List<SingleItem> itemlist_failed = new List<SingleItem>(); // V 合格的行
+            // 加载文件
+            DirectoryInfo thefolder = new DirectoryInfo(path);
+            bool isFirst = true;
+            foreach (FileInfo file in thefolder.GetFiles())
+            {
+                // GlobalItem首行记录，SingleItem单行详细内容记录
+                List<GlobalItem> gloves = new List<GlobalItem>();
+                List<SingleItem> itemlist = new List<SingleItem>();
+                var filepath = file.DirectoryName + @"\" + file.Name;
+                helper.LoadFileV3(filepath, gloves, itemlist);
+
+                List<SingleItem> itemlist_preprocessed = new List<SingleItem>(); // V 合格的行
+                List<SingleItem> itemlist_failed = new List<SingleItem>(); // V 合格的行
                                                                            // 预处理文件
-                //helper.Preprocess(itemlist, itemlist_preprocessed, itemlist_failed, is_for_H);
-                //helper.Output(Path.Combine(path_out, Config.F_PRE), itemlist_preprocessed); // 成功
-                //helper.Output(Path.Combine(path_out, Config.F_FAILED), itemlist_failed); // 失败
+                helper.Preprocess(itemlist, itemlist_preprocessed, itemlist_failed, is_for_H);
+                helper.Output(Path.Combine(path_out, Config.F_PRE), itemlist_preprocessed, append: !isFirst); // 成功
+                helper.Output(Path.Combine(path_out, Config.F_FAILED), itemlist_failed, append: !isFirst); // 失败
 
                 // 电源申压文件
-                //helper.OutputPowerV(Path.Combine(path_out, Config.F_PowerV), gloves);
+                helper.OutputPowerV(Path.Combine(path_out, Config.F_PowerV), gloves, append: !isFirst);
 
                 // 压缩
-                //List<SingleItem> itemlist_avg = new List<SingleItem>();
-                //List<SingleItem> itemlist_compressed = new List<SingleItem>();
+                List<SingleItem> itemlist_avg = new List<SingleItem>();
+                List<SingleItem> itemlist_compressed = new List<SingleItem>();
                 helper.Compress(itemlist_preprocessed, itemlist_compressed, itemlist_avg);
 
-                helper.Output(Path.Combine(path_out, Config.F_DEBUG_CUM), itemlist_compressed);
-                helper.Output(Path.Combine(path_out, Config.F_DEBUG_AVG), itemlist_avg);
+                helper.Output(Path.Combine(path_out, Config.F_DEBUG_CUM), itemlist_compressed, append: !isFirst);
+                helper.Output(Path.Combine(path_out, Config.F_DEBUG_AVG), itemlist_avg, append: !isFirst);
 
                 // 节段电压文件
-                helper.OutputNodeV(Path.Combine(path_out, Config.F_NodeV), itemlist_compressed);
+                helper.OutputNodeV(Path.Combine(path_out, Config.F_NodeV), itemlist_compressed, append: !isFirst);
 
                 // 节段温度文件
-                helper.OutputNodeT(Path.Combine(path_out, Config.F_NodeT), itemlist_compressed);
+                helper.OutputNodeT(Path.Combine(path_out, Config.F_NodeT), itemlist_compressed, append: !isFirst);
 
                 // Result1
-                helper.OutputResult1(Path.Combine(path_out, Config.F_RES1), itemlist_compressed, is_for_H);
+                helper.OutputResult1(Path.Combine(path_out, Config.F_RES1), itemlist_compressed, is_for_H, append: !isFirst);
 
                 // Result2
-                helper.OutputResult2(Path.Combine(path_out, Config.F_RES2), itemlist_compressed, is_for_H);
+                helper.OutputResult2(Path.Combine(path_out, Config.F_RES2), itemlist_compressed, is_for_H, append: !isFirst);
 
                 // Result3
-                helper.OutputResult3(Path.Combine(path_out, Config.F_RES3), itemlist_compressed, is_for_H);
+                helper.OutputResult3(Path.Combine(path_out, Config.F_RES3), itemlist_compressed, is_for_H, append: !isFirst);
 
-                MessageBox.Show("结束！");
+                isFirst = false;
             }
+            MessageBox.Show("结束！");
         }
 
         private void 文件导入ToolStripMenuItem_Click(object sender, EventArgs e)
@@ -393,7 +515,7 @@ namespace CRDC_MEMS
                 MessageBox.Show("文件导入成功！");
 
                 // 处理文件
-                Process(path, is_for_H: false);
+                ProcessV3(path, is_for_H: false);
             }
         }
     }
