@@ -45,7 +45,6 @@ namespace CRDC_MEMS
                 // 处理文件
                 ProcessV3(path, is_for_H:true);
             }
-
         }
 
         private void Data_solution_H_Click(object sender, EventArgs e)
@@ -381,36 +380,34 @@ namespace CRDC_MEMS
                             queue.Enqueue(item_avg);
 
                             // 输出合并结果
-                            //helper.Output(Path.Combine(path_out, Config.F_DEBUG_AVG), item_avg, append: true);
+                            helper.Output(Path.Combine(path_out, Config.F_DEBUG_AVG), item_avg, append: true);
                             // 输出累计结果
                             SingleItem cumItem = helper.Cumulate(itemlist: queue.ToList(),
                                                                 start: 0,
                                                                 end: queue.Count - 1);
-                            //helper.Output(Path.Combine(path_out, Config.F_DEBUG_CUM), cumItem, append: true);
+                            helper.Output(Path.Combine(path_out, Config.F_DEBUG_CUM), cumItem, append: true);
                             
                             // 节段电压文件
-                            //helper.OutputNodeV(Path.Combine(path_out, Config.F_NodeV), cumItem, append: true);
+                            helper.OutputNodeV(Path.Combine(path_out, Config.F_NodeV), cumItem, append: true);
                             // 节段温度文件
-                            //helper.OutputNodeT(Path.Combine(path_out, Config.F_NodeT), cumItem, append: true);
+                            helper.OutputNodeT(Path.Combine(path_out, Config.F_NodeT), cumItem, append: true);
                             // Result1
-                            //helper.OutputResult1(Path.Combine(path_out, Config.F_RES1), cumItem, is_for_H, append: true);
+                            helper.OutputResult1(Path.Combine(path_out, Config.F_RES1), cumItem, is_for_H, append: true);
                             // Result2
-                            //helper.OutputResult2(Path.Combine(path_out, Config.F_RES2), cumItem, is_for_H, append: true);
+                            helper.OutputResult2(Path.Combine(path_out, Config.F_RES2), cumItem, is_for_H, append: true);
 
                             // Result3
                             //第一条记录，或者不足时间间隔（5min）
                             if (first_start_cum || (cumItem.Time - last_dt).TotalSeconds >= Config.TIME_INTERVAL)
                             {
-                                //helper.OutputResult3(filename: Path.Combine(path_out, Config.F_RES3), 
-                                //                     item: cumItem, 
-                                //                     first: first_start_cum,
-                                //                     is_for_H: is_for_H, 
-                                //                     append: true);
+                                helper.OutputResult3(filename: Path.Combine(path_out, Config.F_RES3), 
+                                                     item: cumItem, 
+                                                     first: first_start_cum,
+                                                     is_for_H: is_for_H, 
+                                                     append: true);
                                 last_dt = item.Time;
                             }
                             first_start_cum = false;
-
-                            ////////////////////////////////////first_start = false;
 
                             last_key = key;
                             last_item = (SingleItem)item.ShallowCopy();
