@@ -1,0 +1,11 @@
+node_totalnum:2,Device_SerNumber:BH20A2MT1
+20200821,20,0,0,PowerVoltage:1.13
+20200821,21,0,0,PowerVoltage:1.13
+20200821,22,0,0,PowerVoltage:1.12
+20200821,23,0,0,PowerVoltage:1.12
+20200822,00,0,0,PowerVoltage:1.13
+20200822,01,0,0,PowerVoltage:1.13
+20200822,02,0,0,PowerVoltage:1.12
+20200822,03,0,0,PowerVoltage:1.12
+20200822,04,0,0,PowerVoltage:1.13
+20200822,05,0,0,PowerVoltage:1.12
