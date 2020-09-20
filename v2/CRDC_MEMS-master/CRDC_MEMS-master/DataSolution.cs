@@ -579,16 +579,16 @@ namespace CRDC_MEMS
                         }
 
                         itemsForPre.Add(item);
-                        // 边界处理，至少2行（N_OF_ROW+1），比如第一行，需要向下对比1行
+                        // 边界处理，至少2行（N_OF_ROW+1），这样可以保证预处理的行可以上下对比
                         if (itemsForPre.Count < Config.N_OF_ROW + 1)
                         {
                             continue;
                         }
 
-                        // 如果是两行，则不预处理，直接加入首行，index是待预处理的行，当前是第1行，则预处理第0行
+                        // 如果是少于3行，则不预处理，直接加入，index是待预处理的行，当前是第1行，则预处理第0行
                         int index = 0;
                         // 预处理，上下左右检验
-                        if (itemsForPre.Count > Config.N_OF_ROW + 1)
+                        if (itemsForPre.Count >= Config.N_OF_ROW + 1)
                         {
                             int last = itemsForPre.Count - 1;
                             int first = 0;

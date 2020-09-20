@@ -102,3 +102,16 @@ E:\project\CRDC_MEMS\v2\CRDC_MEMS-master\CRDC_MEMS-master\obj\Debug\CRDC_MEMS.cs
 E:\project\CRDC_MEMS\v2\CRDC_MEMS-master\CRDC_MEMS-master\obj\Debug\CRDC_MEMS.csproj.CoreCompileInputs.cache
 E:\project\CRDC_MEMS\v2\CRDC_MEMS-master\CRDC_MEMS-master\obj\Debug\CRDC_MEMS.exe
 E:\project\CRDC_MEMS\v2\CRDC_MEMS-master\CRDC_MEMS-master\obj\Debug\CRDC_MEMS.pdb
+E:\project\CRDC_MEMS\CRDC_MEMS\v2\CRDC_MEMS-master\CRDC_MEMS-master\bin\Debug\CRDC_MEMS.exe.config
+E:\project\CRDC_MEMS\CRDC_MEMS\v2\CRDC_MEMS-master\CRDC_MEMS-master\bin\Debug\CRDC_MEMS.exe
+E:\project\CRDC_MEMS\CRDC_MEMS\v2\CRDC_MEMS-master\CRDC_MEMS-master\bin\Debug\CRDC_MEMS.pdb
+E:\project\CRDC_MEMS\CRDC_MEMS\v2\CRDC_MEMS-master\CRDC_MEMS-master\obj\Debug\CRDC_MEMS.csprojAssemblyReference.cache
+E:\project\CRDC_MEMS\CRDC_MEMS\v2\CRDC_MEMS-master\CRDC_MEMS-master\obj\Debug\CRDC_MEMS.Configure.resources
+E:\project\CRDC_MEMS\CRDC_MEMS\v2\CRDC_MEMS-master\CRDC_MEMS-master\obj\Debug\CRDC_MEMS.DataCollection.resources
+E:\project\CRDC_MEMS\CRDC_MEMS\v2\CRDC_MEMS-master\CRDC_MEMS-master\obj\Debug\CRDC_MEMS.DataSolution.resources
+E:\project\CRDC_MEMS\CRDC_MEMS\v2\CRDC_MEMS-master\CRDC_MEMS-master\obj\Debug\CRDC_MEMS.main.resources
+E:\project\CRDC_MEMS\CRDC_MEMS\v2\CRDC_MEMS-master\CRDC_MEMS-master\obj\Debug\CRDC_MEMS.Properties.Resources.resources
+E:\project\CRDC_MEMS\CRDC_MEMS\v2\CRDC_MEMS-master\CRDC_MEMS-master\obj\Debug\CRDC_MEMS.csproj.GenerateResource.cache
+E:\project\CRDC_MEMS\CRDC_MEMS\v2\CRDC_MEMS-master\CRDC_MEMS-master\obj\Debug\CRDC_MEMS.csproj.CoreCompileInputs.cache
+E:\project\CRDC_MEMS\CRDC_MEMS\v2\CRDC_MEMS-master\CRDC_MEMS-master\obj\Debug\CRDC_MEMS.exe
+E:\project\CRDC_MEMS\CRDC_MEMS\v2\CRDC_MEMS-master\CRDC_MEMS-master\obj\Debug\CRDC_MEMS.pdb
